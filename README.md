@@ -22,7 +22,7 @@ Simply create files in your standard `assets/stylesheets` folder with extension 
 
 ```
 
-Including Sass files into your GSP files is easy but there are a few things worth mentioning. Say we have a file called `application.scss`. You would include it into your gsp by its compiled extension instead of its original extension. aka, use `.css` instead of `.less`
+Including Sass files into your GSP files is easy but there are a few things worth mentioning. Say we have a file called `application.scss`. You would include it into your gsp by its compiled extension instead of its original extension. aka, use `.css` instead of `.scss`
 
 ```gsp
 <head>
