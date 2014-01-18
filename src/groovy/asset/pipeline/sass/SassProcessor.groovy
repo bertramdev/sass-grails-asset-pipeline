@@ -41,15 +41,16 @@ class SassProcessor {
   private String buildInitializationScript() {
     StringWriter raw = new StringWriter();
     PrintWriter script = new PrintWriter(raw);
-
+    script.println("if !defined?(Compass)");
     script.println("require 'rubygems'                                                         ");
     script.println("require 'sass'                                                          ");
     script.println("require 'sass/plugin'                                                          ");
     script.println("require 'compass'                                                          ");
+    script.println("end");
+    script.println("Compass.reset_configuration!");
     script.println("frameworks = Dir.new(Compass::Frameworks::DEFAULT_FRAMEWORKS_PATH).path    ");
     script.println("Compass::Frameworks.register_directory(File.join(frameworks, 'compass'))   ");
     script.println("Compass::Frameworks.register_directory(File.join(frameworks, 'blueprint')) ");
-    // script.println("Compass.add_project_configuration '" + getConfigLocation() + "'            ");
     script.println("Compass.configure_sass_plugin!                                             ");
 
     script.flush();
@@ -58,7 +59,7 @@ class SassProcessor {
   }
 
   private loadPluginContextPaths() {
-    container.runScriptlet("PLUGIN_CONTEXT_PATHS = {}")
+    container.runScriptlet("PLUGIN_CONTEXT_PATHS = {}  if !defined?(PLUGIN_CONTEXT_PATHS)")
     for(plugin in GrailsPluginUtils.pluginInfos) {
       def pluginContextPath = plugin.pluginDir.getPath()
       container.put("plugin_context", pluginContextPath)
@@ -94,15 +95,13 @@ class SassProcessor {
       container.put("assetFilePath", assetFile.file.canonicalPath)
       container.put("load_paths", pathstext)
       container.put("working_path", assetFile.file.getParent())
-      // container.runScriptlet("Sass::Plugin.options[:load_paths] = load_paths")
 
-      def outputFileName = "target/assets/${AssetHelper.fileNameWithoutExtensionFromArtefact(assetFile.file.name,assetFile)}.${assetFile.compiledExtension}".toString()
+      def outputFileName = new File("target/assets/${AssetHelper.fileNameWithoutExtensionFromArtefact(assetFile.file.name,assetFile)}.${assetFile.compiledExtension}".toString()).canonicalPath
       container.put("file_dest", outputFileName)
-      container.put("file_text", input)
       container.runScriptlet("""
         Compass.add_configuration(
             {
-                :project_path => '.',
+                :project_path => working_path,
                 :sass_path => working_path,
                 :css_path => to_path,
                 :additional_import_paths => load_paths.split(',')
@@ -114,14 +113,17 @@ class SassProcessor {
       def configFile = new File(assetFile.file.getParent(), "config.rb")
       if(configFile.exists()) {
         container.put('config_file',configFile.canonicalPath)
-        container.runScriptlet("""
-          Compass.add_project_configuration config_file
-        """)
+      } else {
+        container.put('config_file',null)
       }
+
 
       container.runScriptlet("""
         Compass.configure_sass_plugin!
-        Compass.compiler.compile(assetFilePath, file_dest)
+        Dir.chdir(working_path) do
+          Compass.add_project_configuration config_file if config_file
+          Compass.compiler.compile_if_required(assetFilePath, file_dest)
+        end
       """)
 
 

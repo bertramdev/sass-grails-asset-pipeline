@@ -169,11 +169,6 @@ module Compass
       Sass::Engine.new(open(sass_filename).read, opts)
     end
 
-    def inline_compile(file_text)
-      puts "Final Prep"
-      puts "Preparing to Compile with Options #{sass_options}"
-      Sass.compile(file_text,sass_options.merge(:syntax => :scss))
-    end
 
     # Place the syntax error into the target css file,
     # formatted to display in the browser (in development mode)
