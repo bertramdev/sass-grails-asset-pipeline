@@ -9,6 +9,7 @@ import groovy.util.logging.Log4j
 import asset.pipeline.CacheManager
 import org.jruby.embed.LocalVariableBehavior;
 import org.jruby.embed.ScriptingContainer;
+import org.codehaus.groovy.grails.plugins.GrailsPluginUtils
 
 @Log4j
 class SassProcessor {
@@ -27,7 +28,7 @@ class SassProcessor {
         workDir.mkdir()
       }
       container.put("to_path",workDir.canonicalPath)
-
+      loadPluginContextPaths()
     } catch (Exception e) {
       throw new Exception("SASS Engine initialization failed.", e)
     } finally {
@@ -56,6 +57,16 @@ class SassProcessor {
     return raw.toString();
   }
 
+  private loadPluginContextPaths() {
+    container.runScriptlet("PLUGIN_CONTEXT_PATHS = {}")
+    for(plugin in GrailsPluginUtils.pluginInfos) {
+      def pluginContextPath = plugin.pluginDir.getPath()
+      container.put("plugin_context", pluginContextPath)
+      container.put("plugin_name", plugin.name)
+      container.runScriptlet("PLUGIN_CONTEXT_PATHS[plugin_name] = plugin_context")
+    }
+
+  }
 
 
   def process(input, assetFile) {
