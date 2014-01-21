@@ -10,7 +10,7 @@ grails.project.dependency.resolution = {
         mavenCentral()
     }
     dependencies {
-        compile 'org.jruby:jruby-complete:1.7.9'
+        compile 'org.jruby:jruby-complete:1.7.10'
     }
 
     plugins {
