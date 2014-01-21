@@ -40,7 +40,7 @@ $ui_path = PLUGIN_CONTEXT_PATHS["bertram-ui"]
 
 Production
 ----------
-During war build your less files are compiled into css files. This is all well and good but sometimes you dont want each individual sass file compiled, but rather your main base less file. It may be best to add a sub folder for those SASS files and exclude it in your precompile config...
+During war build your sass files are compiled into css files. This is all well and good but sometimes you dont want each individual sass file compiled, but rather your main base sass file. It may be best to add a sub folder for those SASS files and exclude it in your precompile config...
 
 Config.groovy:
 ```groovy
