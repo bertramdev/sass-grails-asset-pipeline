@@ -150,7 +150,6 @@ module Compass
       end
 
       def compiler
-        puts "Runing Compass #{Compass.configuration.to_compiler_arguments}"
         Compass::Compiler.new(*Compass.configuration.to_compiler_arguments)
       end
     end
