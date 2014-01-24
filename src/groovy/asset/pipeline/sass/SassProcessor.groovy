@@ -108,6 +108,7 @@ class SassProcessor {
         }.join(",")
         container.put("assetFilePath", assetFile.file.canonicalPath)
         container.put("load_paths", pathstext)
+        container.put("project_path", new File().canonicalPath)
         container.put("working_path", assetFile.file.getParent())
 
         def outputFileName = new File("target/assets/${AssetHelper.fileNameWithoutExtensionFromArtefact(assetFile.file.name,assetFile)}.${assetFile.compiledExtension}".toString()).canonicalPath
@@ -115,6 +116,7 @@ class SassProcessor {
         container.runScriptlet("""
         Compass.add_configuration(
         {
+        :cache_path   => project_path,
         :project_path => working_path,
         :sass_path => working_path,
         :css_path => to_path,
