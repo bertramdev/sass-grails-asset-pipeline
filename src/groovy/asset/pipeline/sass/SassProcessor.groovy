@@ -108,7 +108,7 @@ class SassProcessor {
         }.join(",")
         container.put("assetFilePath", assetFile.file.canonicalPath)
         container.put("load_paths", pathstext)
-        container.put("project_path", new File().canonicalPath)
+        container.put("project_path", new File('.').canonicalPath)
         container.put("working_path", assetFile.file.getParent())
 
         def outputFileName = new File("target/assets/${AssetHelper.fileNameWithoutExtensionFromArtefact(assetFile.file.name,assetFile)}.${assetFile.compiledExtension}".toString()).canonicalPath
