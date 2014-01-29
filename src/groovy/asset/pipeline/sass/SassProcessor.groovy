@@ -116,7 +116,7 @@ class SassProcessor {
         container.runScriptlet("""
         Compass.add_configuration(
         {
-        :cache_path   => project_path,
+        :cache_path   => project_path + '/.sass-cache',
         :project_path => working_path,
         :sass_path => working_path,
         :css_path => to_path,
