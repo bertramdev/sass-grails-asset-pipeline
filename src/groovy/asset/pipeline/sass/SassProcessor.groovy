@@ -39,11 +39,7 @@ class SassProcessor {
         try {
            container = new ScriptingContainer(LocalVariableBehavior.PERSISTENT);
             container.runScriptlet(buildInitializationScript())
-            def workDir = new File("target/assets")
-            if(!workDir.exists()) {
-                workDir.mkdir()
-            }
-            container.put("to_path",workDir.canonicalPath)
+            
             loadPluginContextPaths()
         } catch (Exception e) {
             throw new Exception("SASS Engine initialization failed.", e)
@@ -89,9 +85,13 @@ class SassProcessor {
             threadLocal.set(assetFile);
         }
         def assetRelativePath = relativePath(assetFile.file)
-        // def paths = AssetHelper.scopedDirectoryPaths(new File("grails-app/assets").getAbsolutePath())
+        
+        def workDir = new File("target/assets", assetRelativePath)
+        if(!workDir.exists()) {
+            workDir.mkdirs()
+        }
+        container.put("to_path",workDir.canonicalPath)
 
-        // paths += [assetFile.file.getParent()]
         def paths = AssetHelper.getAssetPaths()
         def relativePaths = paths.collect { [it,assetRelativePath].join(AssetHelper.DIRECTIVE_FILE_SEPARATOR)}
         // println paths
@@ -106,12 +106,13 @@ class SassProcessor {
                 "${p}/"
             }
         }.join(",")
+        container.put("asset_relative_path", assetRelativePath)
         container.put("assetFilePath", assetFile.file.canonicalPath)
         container.put("load_paths", pathstext)
         container.put("project_path", new File('.').canonicalPath)
         container.put("working_path", assetFile.file.getParent())
 
-        def outputFileName = new File("target/assets/${AssetHelper.fileNameWithoutExtensionFromArtefact(assetFile.file.name,assetFile)}.${assetFile.compiledExtension}".toString()).canonicalPath
+        def outputFileName = new File(workDir,"${AssetHelper.fileNameWithoutExtensionFromArtefact(assetFile.file.name,assetFile)}.${assetFile.compiledExtension}".toString()).canonicalPath
         container.put("file_dest", outputFileName)
         container.runScriptlet("""
         Compass.add_configuration(
