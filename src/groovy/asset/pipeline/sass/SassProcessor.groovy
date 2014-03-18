@@ -16,6 +16,8 @@
 package asset.pipeline.sass
 
 import asset.pipeline.AssetHelper
+import grails.util.Environment
+import grails.util.Holders
 import org.mozilla.javascript.Context
 import org.mozilla.javascript.JavaScriptException
 import org.mozilla.javascript.Scriptable
@@ -81,6 +83,8 @@ class SassProcessor {
     }
 
     def process(input, assetFile) {
+        def grailsApplication = Holders.getGrailsApplication()
+
         if(!this.precompilerMode) {
             threadLocal.set(assetFile);
         }
@@ -106,6 +110,10 @@ class SassProcessor {
                 "${p}/"
             }
         }.join(",")
+
+        def compassEnv = ":${Environment.current.name}"
+        def outputStyle = ":${grailsApplication.config?.grails?.assets?.minifyCss ? 'compressed' : 'expanded'}"
+
         container.put("asset_relative_path", assetRelativePath)
         container.put("assetFilePath", assetFile.file.canonicalPath)
         container.put("load_paths", pathstext)
@@ -121,7 +129,9 @@ class SassProcessor {
         :project_path => working_path,
         :sass_path => working_path,
         :css_path => to_path,
-        :additional_import_paths => load_paths.split(',')
+        :additional_import_paths => load_paths.split(','),
+        :environment => ${compassEnv},
+        :output_style => ${outputStyle}
         },
         'Grails' # A name for the configuration, can be anything you want
         )
