@@ -111,20 +111,28 @@ class SassProcessor {
         container.put("load_paths", pathstext)
         container.put("project_path", new File('.').canonicalPath)
         container.put("working_path", assetFile.file.getParent())
-
-        def outputFileName = new File(workDir,"${AssetHelper.fileNameWithoutExtensionFromArtefact(assetFile.file.name,assetFile)}.${assetFile.compiledExtension}".toString()).canonicalPath
+        container.put("precompiler_mode",precompilerMode)
+        def outputFileName = new File(assetFile.file.getParent(),"${AssetHelper.fileNameWithoutExtensionFromArtefact(assetFile.file.name,assetFile)}.${assetFile.compiledExtension}".toString()).canonicalPath
         container.put("file_dest", outputFileName)
         container.runScriptlet("""
-        Compass.add_configuration(
-        {
-        :cache_path   => project_path + '/.sass-cache',
-        :project_path => working_path,
-        :sass_path => working_path,
-        :css_path => to_path,
-        :additional_import_paths => load_paths.split(',')
-        },
-        'Grails' # A name for the configuration, can be anything you want
-        )
+            environment = precompiler_mode ? :production : :development
+            generated_images_path = working_path + '/../images'
+            
+
+            Compass.add_configuration(
+            {
+            :cache_path   => project_path + '/.sass-cache',
+            :project_path => working_path,
+            :environment =>  :development,
+            :images_path  => working_path + '/../images',
+            :generated_images_path => generated_images_path,
+            :relative_assets => true,
+            :sass_path => working_path,
+            :css_path => working_path,
+            :additional_import_paths => load_paths.split(',')
+            },
+            'Grails' # A name for the configuration, can be anything you want
+            )
         """)
 
         def configFile = new File(assetFile.file.getParent(), "config.rb")
@@ -135,10 +143,11 @@ class SassProcessor {
         }
 
         container.runScriptlet("""
-        Compass.configure_sass_plugin!
         Dir.chdir(working_path) do
-        Compass.add_project_configuration config_file if config_file
-        Compass.compiler.compile_if_required(assetFilePath, file_dest)
+            Compass.configure_sass_plugin!
+        
+            Compass.add_project_configuration config_file if config_file
+            Compass.compiler.compile_if_required(assetFilePath, file_dest)
         end
         """)
 
@@ -147,7 +156,9 @@ class SassProcessor {
             if(assetFile.encoding) {
                 return outputFile.getText(assetFile.encoding)
             }
-            return outputFile.getText()
+            def fileText = outputFile.getText()
+            outputFile.delete()
+            return fileText
         } else {
             return input
         }
