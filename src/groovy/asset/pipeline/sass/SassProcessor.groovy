@@ -85,7 +85,7 @@ class SassProcessor {
             threadLocal.set(assetFile);
         }
         def assetRelativePath = relativePath(assetFile.file)
-        
+        def fileText
         def workDir = new File("target/assets", assetRelativePath)
         if(!workDir.exists()) {
             workDir.mkdirs()
@@ -117,70 +117,79 @@ class SassProcessor {
         container.put("precompiler_mode",precompiler ? true : false)
         container.put("additional_files", additionalFiles)
         def outputFileName = new File(assetFile.file.getParent(),"${AssetHelper.fileNameWithoutExtensionFromArtefact(assetFile.file.name,assetFile)}.${assetFile.compiledExtension}".toString()).canonicalPath
-        container.put("file_dest", outputFileName)
-        container.runScriptlet("""
-            environment = precompiler_mode ? :production : :development
+        try {    
+            container.put("file_dest", outputFileName)
+            container.runScriptlet("""
+                environment = precompiler_mode ? :production : :development
+                
+
+                Compass.add_configuration(
+                {
+                :cache_path   => project_path + '/.sass-cache',
+                :project_path => working_path,
+                :environment =>  :development,
+                :images_path  => asset_path + '/images',
+                :fonts_path   => asset_path + '/fonts',
+                :generated_images_path => asset_path + '/images',
+                :relative_assets => true,
+                :sass_path => working_path,
+                :css_path => working_path,
+                :additional_import_paths => load_paths.split(',')
+                },
+                'Grails' # A name for the configuration, can be anything you want
+                )
+
+                Compass.configuration.on_sprite_saved do |filename|
+                    pathname = Pathname.new(filename)
+                    additional_files << pathname.cleanpath.to_s
+                end
+
+            """)
+
+            def configFile = new File(assetFile.file.getParent(), "config.rb")
+            if(configFile.exists()) {
+                container.put('config_file',configFile.canonicalPath)
+            } else {
+                container.put('config_file',null)
+            }
+
+
+            container.runScriptlet("""
+            Dir.chdir(working_path) do
+                Compass.configure_sass_plugin!
             
-
-            Compass.add_configuration(
-            {
-            :cache_path   => project_path + '/.sass-cache',
-            :project_path => working_path,
-            :environment =>  :development,
-            :images_path  => asset_path + '/images',
-            :fonts_path   => asset_path + '/fonts',
-            :generated_images_path => asset_path + '/images',
-            :relative_assets => true,
-            :sass_path => working_path,
-            :css_path => working_path,
-            :additional_import_paths => load_paths.split(',')
-            },
-            'Grails' # A name for the configuration, can be anything you want
-            )
-
-            Compass.configuration.on_sprite_saved do |filename|
-                pathname = Pathname.new(filename)
-                additional_files << pathname.cleanpath.to_s
+                Compass.add_project_configuration config_file if config_file
+                Compass.compiler.compile_if_required(assetFilePath, file_dest)
             end
+            """)
 
-        """)
+            // Lets check for generated files and add to precompiler
+            if(precompiler) {
+                additionalFiles.each { filename ->
+                    def file = new File(filename)
+                    precompiler.filesToProcess << relativePath(file,true)       
+                }
+            }
 
-        def configFile = new File(assetFile.file.getParent(), "config.rb")
-        if(configFile.exists()) {
-            container.put('config_file',configFile.canonicalPath)
-        } else {
-            container.put('config_file',null)
-        }
-
-
-        container.runScriptlet("""
-        Dir.chdir(working_path) do
-            Compass.configure_sass_plugin!
-        
-            Compass.add_project_configuration config_file if config_file
-            Compass.compiler.compile_if_required(assetFilePath, file_dest)
-        end
-        """)
-
-        // Lets check for generated files and add to precompiler
-        if(precompiler) {
-            additionalFiles.each { filename ->
-                def file = new File(filename)
-                precompiler.filesToProcess << relativePath(file,true)       
+            def outputFile = new File(outputFileName)
+            if(outputFile.exists()) {
+                if(assetFile.encoding) {
+                    fileText = outputFile.getText(assetFile.encoding)
+                } else {
+                    fileText = outputFile.getText()
+                }
+            } else {
+                fileText = input
+            }
+        } catch(e) {
+            throw(e)
+        } finally {
+            if(outputFile.exists()) {
+                outputFile.delete()
             }
         }
 
-        def outputFile = new File(outputFileName)
-        if(outputFile.exists()) {
-            if(assetFile.encoding) {
-                return outputFile.getText(assetFile.encoding)
-            }
-            def fileText = outputFile.getText()
-            outputFile.delete()
-            return fileText
-        } else {
-            return input
-        }
+        return fileText
     }
 
     // Return the parent asset path for the file
