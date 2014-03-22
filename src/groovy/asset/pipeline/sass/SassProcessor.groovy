@@ -184,6 +184,7 @@ class SassProcessor {
         } catch(e) {
             throw(e)
         } finally {
+            def outputFile = new File(outputFileName)
             if(outputFile.exists()) {
                 outputFile.delete()
             }
