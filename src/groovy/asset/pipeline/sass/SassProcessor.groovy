@@ -109,14 +109,14 @@ class SassProcessor {
 
         def additionalFiles = []
         container.put("asset_relative_path", assetRelativePath)
-        container.put("assetFilePath", assetFile.file.canonicalPath)
+        container.put("assetFilePath", assetFile.file.canonicalPath.replace(AssetHelper.QUOTED_FILE_SEPARATOR,AssetHelper.DIRECTIVE_FILE_SEPARATOR))
         container.put("load_paths", pathstext)
-        container.put("project_path", new File('.').canonicalPath)
-        container.put("working_path", assetFile.file.getParent())
+        container.put("project_path", new File('.').canonicalPath.replace(AssetHelper.QUOTED_FILE_SEPARATOR,AssetHelper.DIRECTIVE_FILE_SEPARATOR))
+        container.put("working_path", assetFile.file.getParent().replace(AssetHelper.QUOTED_FILE_SEPARATOR,AssetHelper.DIRECTIVE_FILE_SEPARATOR))
         container.put("asset_path", assetBasePath(assetFile.file))
         container.put("precompiler_mode",precompiler ? true : false)
         container.put("additional_files", additionalFiles)
-        def outputFileName = new File(assetFile.file.getParent(),"${AssetHelper.fileNameWithoutExtensionFromArtefact(assetFile.file.name,assetFile)}.${assetFile.compiledExtension}".toString()).canonicalPath
+        def outputFileName = new File(assetFile.file.getParent(),"${AssetHelper.fileNameWithoutExtensionFromArtefact(assetFile.file.name,assetFile)}.${assetFile.compiledExtension}".toString()).canonicalPath.replace(AssetHelper.QUOTED_FILE_SEPARATOR,AssetHelper.DIRECTIVE_FILE_SEPARATOR)
         try {    
             container.put("file_dest", outputFileName)
             container.runScriptlet("""
@@ -148,7 +148,7 @@ class SassProcessor {
 
             def configFile = new File(assetFile.file.getParent(), "config.rb")
             if(configFile.exists()) {
-                container.put('config_file',configFile.canonicalPath)
+                container.put('config_file',configFile.canonicalPath.replace(AssetHelper.QUOTED_FILE_SEPARATOR,AssetHelper.DIRECTIVE_FILE_SEPARATOR))
             } else {
                 container.put('config_file',null)
             }
