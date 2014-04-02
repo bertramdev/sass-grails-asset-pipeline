@@ -122,10 +122,11 @@ class SassProcessor {
             container.runScriptlet("""
                 environment = precompiler_mode ? :production : :development
                 
-
+                
                 Compass.add_configuration(
                 {
                 :cache_path   => project_path + '/.sass-cache',
+                :cache => true,
                 :project_path => working_path,
                 :environment =>  :development,
                 :images_path  => asset_path + '/images',
@@ -157,7 +158,6 @@ class SassProcessor {
             container.runScriptlet("""
             Dir.chdir(working_path) do
                 Compass.configure_sass_plugin!
-            
                 Compass.add_project_configuration config_file if config_file
                 Compass.compiler.compile_if_required(assetFilePath, file_dest)
             end
@@ -200,7 +200,7 @@ class SassProcessor {
 
         def endPosition = path.findLastIndexOf {it == "assets" || it == "web-app"}
         if(endPosition == -1) {
-            return new File("grails-app/assets").canonicalPath
+            return new File("grails-app/assets").canonicalPath.replace(File.separator, AssetHelper.DIRECTIVE_FILE_SEPARATOR)
         } else {
             path = path[0..endPosition]
             return path.join(AssetHelper.DIRECTIVE_FILE_SEPARATOR)
