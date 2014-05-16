@@ -1,3 +1,5 @@
+require 'rubygems/package'
+
 # ----- Utility Functions -----
 
 def scope(path)
@@ -28,7 +30,7 @@ task :package => [:revision_file, :date_file, :submodules, :permissions] do
   version = get_version
   File.open(scope('VERSION'), 'w') {|f| f.puts(version)}
   load scope('sass.gemspec')
-  Gem::Builder.new(SASS_GEMSPEC).build
+  Gem::Package.build(SASS_GEMSPEC)
   sh %{git checkout VERSION}
 
   pkg = "#{SASS_GEMSPEC.name}-#{SASS_GEMSPEC.version}"
@@ -85,16 +87,16 @@ desc "Release a new Sass package to Rubyforge."
 task :release => [:check_release, :package] do
   name = File.read(scope("VERSION_NAME")).strip
   version = File.read(scope("VERSION")).strip
-  sh %{rubyforge add_release sass sass "#{name} (v#{version})" pkg/sass-#{version}.gem}
-  sh %{rubyforge add_file    sass sass "#{name} (v#{version})" pkg/sass-#{version}.tar.gz}
+  #sh %{rubyforge add_release sass sass "#{name} (v#{version})" pkg/sass-#{version}.gem}
+  #sh %{rubyforge add_file    sass sass "#{name} (v#{version})" pkg/sass-#{version}.tar.gz}
   sh %{gem push pkg/sass-#{version}.gem}
 end
 
 # Ensures that the VERSION file has been updated for a new release.
 task :check_release do
-  version = File.read(scope("VERSION")).strip
-  raise "There have been changes since current version (#{version})" if changed_since?(version)
-  raise "VERSION_NAME must not be 'Bleeding Edge'" if File.read(scope("VERSION_NAME")) == "Bleeding Edge"
+  #version = File.read(scope("VERSION")).strip
+  #raise "There have been changes since current version (#{version})" if changed_since?(version)
+  #raise "VERSION_NAME must not be 'Bleeding Edge'" if File.read(scope("VERSION_NAME")) == "Bleeding Edge"
 end
 
 # Reads a password from the command line.

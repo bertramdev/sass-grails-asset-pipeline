@@ -322,6 +322,44 @@ SCSS
     assert_equal("@import url(fonts.sass);\n", render("@import url(fonts.sass);"))
   end
 
+  def test_css_import_doesnt_move_through_comments
+    assert_equal <<CSS, render(<<SCSS)
+/* Comment 1 */
+@import url("foo.css");
+/* Comment 2 */
+@import url("bar.css");
+CSS
+/* Comment 1 */
+@import url("foo.css");
+
+/* Comment 2 */
+@import url("bar.css");
+SCSS
+  end
+
+  def test_css_import_movement_stops_at_comments
+    assert_equal <<CSS, render(<<SCSS)
+/* Comment 1 */
+@import url("foo.css");
+/* Comment 2 */
+@import url("bar.css");
+.foo {
+  a: b; }
+
+/* Comment 3 */
+CSS
+/* Comment 1 */
+@import url("foo.css");
+
+/* Comment 2 */
+
+.foo {a: b}
+
+/* Comment 3 */
+@import url("bar.css");
+SCSS
+  end
+
   def test_block_comment_in_script
     assert_equal <<CSS, render(<<SCSS)
 foo {
@@ -1724,6 +1762,17 @@ SCSS
   end
 
   # Regression
+ 
+  def test_parent_ref_with_newline
+    assert_equal(<<CSS, render(<<SCSS))
+a.c
+, b.c {
+  x: y; }
+CSS
+a
+, b {&.c {x: y}}
+SCSS
+  end
 
   def test_loud_comment_in_compressed_mode
     assert_equal(<<CSS, render(<<SCSS))
