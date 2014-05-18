@@ -37,8 +37,10 @@ class SassAssetFile extends AbstractAssetFile {
         }
 
         for(processor in processors) {
-            def processInstance = processor.newInstance(precompiler)
-            fileText = processInstance.process(fileText, this)
+            synchronized(SassAssetFile) {
+                def processInstance = processor.newInstance(precompiler)
+                fileText = processInstance.process(fileText, this)
+            }
         }
 
         return fileText
