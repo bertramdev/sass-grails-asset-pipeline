@@ -26,7 +26,7 @@ class SassAssetFile extends AbstractAssetFile {
     static final String compiledExtension = 'css'
     static processors = [SassProcessor,CssProcessor]
 
-    String processedStream(Boolean precompiler) {
+    String processedStream(precompiler) {
         def fileText
         def skipCache = precompiler ?: (!processors || processors.size() == 0)
 
