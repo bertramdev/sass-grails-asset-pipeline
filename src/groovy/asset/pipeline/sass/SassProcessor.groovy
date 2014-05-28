@@ -26,20 +26,22 @@ import asset.pipeline.CacheManager
 import org.jruby.embed.LocalVariableBehavior;
 import org.jruby.embed.ScriptingContainer;
 import org.codehaus.groovy.grails.plugins.GrailsPluginUtils
+import asset.pipeline.AbstractProcessor
+import asset.pipeline.AssetCompiler
 
 @Log4j
-class SassProcessor {
+class SassProcessor extends AbstractProcessor {
     public static final java.lang.ThreadLocal threadLocal = new ThreadLocal();
     ScriptingContainer container
     ClassLoader classLoader
-    def precompiler
 
-    SassProcessor(precompiler=false) {
-        this.precompiler = precompiler
+
+    SassProcessor(AssetCompiler precompiler) {
+        super(precompiler)
         try {
            container = new ScriptingContainer(LocalVariableBehavior.PERSISTENT);
             container.runScriptlet(buildInitializationScript())
-            
+
             loadPluginContextPaths()
         } catch (Exception e) {
             throw new Exception("SASS Engine initialization failed.", e)
@@ -117,12 +119,12 @@ class SassProcessor {
         container.put("precompiler_mode",precompiler ? true : false)
         container.put("additional_files", additionalFiles)
         def outputFileName = new File(assetFile.file.getParent(),"${AssetHelper.fileNameWithoutExtensionFromArtefact(assetFile.file.name,assetFile)}.${assetFile.compiledExtension}".toString()).canonicalPath.replace(File.separator,AssetHelper.DIRECTIVE_FILE_SEPARATOR)
-        try {    
+        try {
             container.put("file_dest", outputFileName)
             container.runScriptlet("""
                 environment = precompiler_mode ? :production : :development
-                
-                
+
+
                 Compass.add_configuration(
                 {
                 :cache_path   => project_path + '/.sass-cache',
@@ -167,7 +169,7 @@ class SassProcessor {
             if(precompiler) {
                 additionalFiles.each { filename ->
                     def file = new File(filename)
-                    precompiler.filesToProcess << relativePath(file,true)       
+                    precompiler.filesToProcess << relativePath(file,true)
                 }
             }
 
