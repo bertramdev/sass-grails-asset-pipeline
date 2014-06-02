@@ -38,6 +38,18 @@ By default the `sass-asset-pipeline` will follow behavior from compass and look 
 $ui_path = PLUGIN_CONTEXT_PATHS["bertram-ui"]
 ```
 
+Moreover it's possible to access the environment variable in config.rb to define environment specific config
+
+```ruby
+if Compass.configuration.environment == :production
+  sass_options = {:debug_info => false}
+  line_comments = false
+else
+  sass_options = {:debug_info => true}
+  line_comments = true
+end
+```
+
 Production
 ----------
 During war build your sass files are compiled into css files. This is all well and good but sometimes you dont want each individual sass file compiled, but rather your main base sass file. It may be best to add a sub folder for those SASS files and exclude it in your precompile config...

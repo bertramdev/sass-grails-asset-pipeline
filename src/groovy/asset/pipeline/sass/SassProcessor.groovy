@@ -129,13 +129,12 @@ class SassProcessor extends AbstractProcessor {
             container.runScriptlet("""
                 environment = precompiler_mode ? :production : :development
 
-
                 Compass.add_configuration(
                 {
                 :cache_path   => project_path + '/.sass-cache',
                 :cache => true,
                 :project_path => working_path,
-                :environment =>  :development,
+                :environment =>  environment,
                 :images_path  => asset_path + '/images',
                 :fonts_path   => asset_path + '/fonts',
                 :generated_images_path => asset_path + '/images',
