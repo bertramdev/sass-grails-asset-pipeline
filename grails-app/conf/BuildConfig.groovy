@@ -10,11 +10,11 @@ grails.project.dependency.resolution = {
         mavenCentral()
     }
     dependencies {
-        compile 'org.jruby:jruby-complete:1.7.10'
+        compile 'org.jruby:jruby-complete:1.7.11'
     }
 
     plugins {
-        runtime ":asset-pipeline:1.5.1"
+        runtime ":asset-pipeline:1.8.8"
 
         build(":release:2.2.1",
               ":rest-client-builder:1.0.3") {

@@ -16,7 +16,6 @@
 package asset.pipeline.sass
 
 import asset.pipeline.AssetHelper
-import grails.util.Environment
 import grails.util.Holders
 import org.mozilla.javascript.Context
 import org.mozilla.javascript.JavaScriptException
@@ -28,20 +27,22 @@ import asset.pipeline.CacheManager
 import org.jruby.embed.LocalVariableBehavior;
 import org.jruby.embed.ScriptingContainer;
 import org.codehaus.groovy.grails.plugins.GrailsPluginUtils
+import asset.pipeline.AbstractProcessor
+import asset.pipeline.AssetCompiler
 
 @Log4j
-class SassProcessor {
+class SassProcessor extends AbstractProcessor {
     public static final java.lang.ThreadLocal threadLocal = new ThreadLocal();
     ScriptingContainer container
     ClassLoader classLoader
-    def precompilerMode
 
-    SassProcessor(precompiler=false) {
-        this.precompilerMode = precompiler
+
+    SassProcessor(AssetCompiler precompiler) {
+        super(precompiler)
         try {
            container = new ScriptingContainer(LocalVariableBehavior.PERSISTENT);
             container.runScriptlet(buildInitializationScript())
-            
+
             loadPluginContextPaths()
         } catch (Exception e) {
             throw new Exception("SASS Engine initialization failed.", e)
@@ -84,12 +85,12 @@ class SassProcessor {
 
     def process(input, assetFile) {
         def grailsApplication = Holders.getGrailsApplication()
-
-        if(!this.precompilerMode) {
+        
+        if(!this.precompiler) {
             threadLocal.set(assetFile);
         }
         def assetRelativePath = relativePath(assetFile.file)
-        
+        def fileText
         def workDir = new File("target/assets", assetRelativePath)
         if(!workDir.exists()) {
             workDir.mkdirs()
@@ -111,56 +112,108 @@ class SassProcessor {
             }
         }.join(",")
 
-        def compassEnv = ":${Environment.current.name}"
         def outputStyle = ":${grailsApplication.config?.grails?.assets?.minifyCss ? 'compressed' : 'expanded'}"
 
+        def additionalFiles = []
         container.put("asset_relative_path", assetRelativePath)
-        container.put("assetFilePath", assetFile.file.canonicalPath)
+        container.put("assetFilePath", assetFile.file.canonicalPath.replace(File.separator,AssetHelper.DIRECTIVE_FILE_SEPARATOR))
         container.put("load_paths", pathstext)
-        container.put("project_path", new File('.').canonicalPath)
-        container.put("working_path", assetFile.file.getParent())
+        container.put("project_path", new File('.').canonicalPath.replace(File.separator,AssetHelper.DIRECTIVE_FILE_SEPARATOR))
+        container.put("working_path", assetFile.file.getParent().replace(File.separator,AssetHelper.DIRECTIVE_FILE_SEPARATOR))
+        container.put("asset_path", assetBasePath(assetFile.file))
+        container.put("precompiler_mode",precompiler ? true : false)
+        container.put("additional_files", additionalFiles)
+        def outputFileName = new File(assetFile.file.getParent(),"${AssetHelper.fileNameWithoutExtensionFromArtefact(assetFile.file.name,assetFile)}.${assetFile.compiledExtension}".toString()).canonicalPath.replace(File.separator,AssetHelper.DIRECTIVE_FILE_SEPARATOR)
+        try {
+            container.put("file_dest", outputFileName)
+            container.runScriptlet("""
+                environment = precompiler_mode ? :production : :development
 
-        def outputFileName = new File(workDir,"${AssetHelper.fileNameWithoutExtensionFromArtefact(assetFile.file.name,assetFile)}.${assetFile.compiledExtension}".toString()).canonicalPath
-        container.put("file_dest", outputFileName)
-        container.runScriptlet("""
-        Compass.add_configuration(
-        {
-        :cache_path   => project_path + '/.sass-cache',
-        :project_path => working_path,
-        :sass_path => working_path,
-        :css_path => to_path,
-        :additional_import_paths => load_paths.split(','),
-        :environment => ${compassEnv},
-        :output_style => ${outputStyle}
-        },
-        'Grails' # A name for the configuration, can be anything you want
-        )
-        """)
 
-        def configFile = new File(assetFile.file.getParent(), "config.rb")
-        if(configFile.exists()) {
-            container.put('config_file',configFile.canonicalPath)
-        } else {
-            container.put('config_file',null)
-        }
+                Compass.add_configuration(
+                {
+                :cache_path   => project_path + '/.sass-cache',
+                :cache => true,
+                :project_path => working_path,
+                :environment =>  :development,
+                :images_path  => asset_path + '/images',
+                :fonts_path   => asset_path + '/fonts',
+                :generated_images_path => asset_path + '/images',
+                :relative_assets => true,
+                :sass_path => working_path,
+                :css_path => working_path,
+                :additional_import_paths => load_paths.split(','),
+                :output_style => ${outputStyle}
+                },
+                'Grails' # A name for the configuration, can be anything you want
+                )
 
-        container.runScriptlet("""
-        Compass.configure_sass_plugin!
-        Dir.chdir(working_path) do
-        Compass.add_project_configuration config_file if config_file
-        Compass.compiler.compile_if_required(assetFilePath, file_dest)
-        end
-        """)
+                Compass.configuration.on_sprite_saved do |filename|
+                    pathname = Pathname.new(filename)
+                    additional_files << pathname.cleanpath.to_s
+                end
 
-        def outputFile = new File(outputFileName)
-        if(outputFile.exists()) {
-            if(assetFile.encoding) {
-                return outputFile.getText(assetFile.encoding)
+            """)
+
+            def configFile = new File(assetFile.file.getParent(), "config.rb")
+            if(configFile.exists()) {
+                container.put('config_file',configFile.canonicalPath.replace(File.separator,AssetHelper.DIRECTIVE_FILE_SEPARATOR))
+            } else {
+                container.put('config_file',null)
             }
-            return outputFile.getText()
-        } else {
-            return input
+
+
+            container.runScriptlet("""
+            Dir.chdir(working_path) do
+                Compass.configure_sass_plugin!
+                Compass.add_project_configuration config_file if config_file
+                Compass.compiler.compile_if_required(assetFilePath, file_dest)
+            end
+            """)
+
+            // Lets check for generated files and add to precompiler
+            if(precompiler) {
+                additionalFiles.each { filename ->
+                    def file = new File(filename)
+                    precompiler.filesToProcess << relativePath(file,true)
+                }
+            }
+
+            def outputFile = new File(outputFileName)
+            if(outputFile.exists()) {
+                if(assetFile.encoding) {
+                    fileText = outputFile.getText(assetFile.encoding)
+                } else {
+                    fileText = outputFile.getText()
+                }
+            } else {
+                fileText = input
+            }
+        } catch(e) {
+            throw(e)
+        } finally {
+            def outputFile = new File(outputFileName)
+            if(outputFile.exists()) {
+                outputFile.delete()
+            }
         }
+
+        return fileText
+    }
+
+    // Return the parent asset path for the file
+    def assetBasePath(file) {
+        def path
+        path  = file.canonicalPath.split(AssetHelper.QUOTED_FILE_SEPARATOR)
+
+        def endPosition = path.findLastIndexOf {it == "assets" || it == "web-app"}
+        if(endPosition == -1) {
+            return new File("grails-app/assets").canonicalPath.replace(File.separator, AssetHelper.DIRECTIVE_FILE_SEPARATOR)
+        } else {
+            path = path[0..endPosition]
+            return path.join(AssetHelper.DIRECTIVE_FILE_SEPARATOR)
+        }
+
     }
 
     def relativePath(file, includeFileName=false) {
