@@ -25,6 +25,7 @@ import groovy.util.logging.Log4j
 import asset.pipeline.CacheManager
 import org.jruby.embed.LocalVariableBehavior;
 import org.jruby.embed.ScriptingContainer;
+import org.jruby.RubyInstanceConfig.CompileMode;
 import org.codehaus.groovy.grails.plugins.GrailsPluginUtils
 import asset.pipeline.AbstractProcessor
 import asset.pipeline.AssetCompiler
@@ -39,7 +40,8 @@ class SassProcessor extends AbstractProcessor {
     SassProcessor(AssetCompiler precompiler) {
         super(precompiler)
         try {
-           container = new ScriptingContainer(LocalVariableBehavior.PERSISTENT);
+            container = new ScriptingContainer(LocalVariableBehavior.PERSISTENT);
+            container.setCompileMode(CompileMode.OFF)
             container.runScriptlet(buildInitializationScript())
 
             loadPluginContextPaths()
