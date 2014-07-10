@@ -16,6 +16,7 @@
 package asset.pipeline.sass
 
 import asset.pipeline.AssetHelper
+import grails.util.Holders
 import org.mozilla.javascript.Context
 import org.mozilla.javascript.JavaScriptException
 import org.mozilla.javascript.Scriptable
@@ -85,6 +86,8 @@ class SassProcessor extends AbstractProcessor {
     }
 
     def process(input, assetFile) {
+        def grailsApplication = Holders.getGrailsApplication()
+        
         if(!this.precompiler) {
             threadLocal.set(assetFile);
         }
@@ -111,6 +114,8 @@ class SassProcessor extends AbstractProcessor {
             }
         }.join(",")
 
+        def outputStyle = ":${grailsApplication.config?.grails?.assets?.minifyCss ? 'compressed' : 'expanded'}"
+
         def additionalFiles = []
         container.put("asset_relative_path", assetRelativePath)
         container.put("assetFilePath", assetFile.file.canonicalPath.replace(File.separator,AssetHelper.DIRECTIVE_FILE_SEPARATOR))
@@ -126,20 +131,20 @@ class SassProcessor extends AbstractProcessor {
             container.runScriptlet("""
                 environment = precompiler_mode ? :production : :development
 
-
                 Compass.add_configuration(
                 {
                 :cache_path   => project_path + '/.sass-cache',
                 :cache => true,
                 :project_path => working_path,
-                :environment =>  :development,
+                :environment =>  environment,
                 :images_path  => asset_path + '/images',
                 :fonts_path   => asset_path + '/fonts',
                 :generated_images_path => asset_path + '/images',
                 :relative_assets => true,
                 :sass_path => working_path,
                 :css_path => working_path,
-                :additional_import_paths => load_paths.split(',')
+                :additional_import_paths => load_paths.split(','),
+                :output_style => ${outputStyle}
                 },
                 'Grails' # A name for the configuration, can be anything you want
                 )
