@@ -14,7 +14,7 @@ grails.project.dependency.resolution = {
     }
 
     plugins {
-        runtime ":asset-pipeline:1.9.2"
+        runtime ":asset-pipeline:1.9.9"
 
         build(":release:3.0.1",
               ":rest-client-builder:2.0.3") {

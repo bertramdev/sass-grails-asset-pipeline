@@ -44,7 +44,7 @@ class SassProcessor extends AbstractProcessor {
             container = new ScriptingContainer(LocalVariableBehavior.PERSISTENT);
             container.setCompileMode(CompileMode.OFF)
             container.runScriptlet(buildInitializationScript())
-
+            overrideSassFileImporter()
             loadPluginContextPaths()
         } catch (Exception e) {
             throw new Exception("SASS Engine initialization failed.", e)
@@ -60,6 +60,7 @@ class SassProcessor extends AbstractProcessor {
         PrintWriter script = new PrintWriter(raw);
         script.println("if !defined?(Compass)");
         script.println("require 'rubygems'                                                         ");
+        script.println("require 'java'                                                         ");
         script.println("require 'sass'                                                          ");
         script.println("require 'sass/plugin'                                                          ");
         script.println("require 'compass'                                                          ");
@@ -75,6 +76,28 @@ class SassProcessor extends AbstractProcessor {
         return raw.toString();
     }
 
+    private overrideSassFileImporter() {
+        container.runScriptlet("""
+            Sass::Importers::Filesystem.class_eval do
+
+                def find(name,options)
+                    result = _find(@root, name, options)
+                    if result
+                        Java::AssetPipelineSass::SassProcessor.onImport(result.options[:filename])
+                    end
+                    return result
+                end
+                def find_relative(name, base, options)
+                  result = _find(File.dirname(base), name, options)
+                  if result
+                      Java::AssetPipelineSass::SassProcessor.onImport(result.options[:filename])
+                  end
+                  return result
+                end
+            end
+        """);
+    }
+
     private loadPluginContextPaths() {
         container.runScriptlet("PLUGIN_CONTEXT_PATHS = {}  if !defined?(PLUGIN_CONTEXT_PATHS)")
         for(plugin in GrailsPluginUtils.pluginInfos) {
@@ -87,7 +110,7 @@ class SassProcessor extends AbstractProcessor {
 
     def process(input, assetFile) {
         def grailsApplication = Holders.getGrailsApplication()
-        
+
         if(!this.precompiler) {
             threadLocal.set(assetFile);
         }
@@ -240,5 +263,15 @@ class SassProcessor extends AbstractProcessor {
         }
 
         return path.join(AssetHelper.DIRECTIVE_FILE_SEPARATOR)
+    }
+
+    static String onImport(String path) {
+        def assetFile = threadLocal.get();
+        def file = new File(path) //Returned from the Sass File Importer
+        if(assetFile) {
+          CacheManager.addCacheDependency(assetFile.file.canonicalPath, file)
+        }
+
+        return null
     }
 }

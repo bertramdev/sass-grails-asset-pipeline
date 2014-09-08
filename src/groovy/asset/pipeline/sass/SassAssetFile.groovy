@@ -26,25 +26,25 @@ class SassAssetFile extends AbstractAssetFile {
     static final String compiledExtension = 'css'
     static processors = [SassProcessor,CssProcessor]
 
-    String processedStream(precompiler) {
-        def fileText
-        def skipCache = precompiler ?: (!processors || processors.size() == 0)
-
-        if(baseFile?.encoding || encoding) {
-            fileText = file?.getText(baseFile?.encoding ? baseFile.encoding : encoding)
-        } else {
-            fileText = file?.text
-        }
-
-        for(processor in processors) {
-            synchronized(SassAssetFile) {
-                def processInstance = processor.newInstance(precompiler)
-                fileText = processInstance.process(fileText, this)
-            }
-        }
-
-        return fileText
-    }
+    // String processedStream(precompiler) {
+    //     def fileText
+    //     def skipCache = precompiler ?: (!processors || processors.size() == 0)
+    //
+    //     if(baseFile?.encoding || encoding) {
+    //         fileText = file?.getText(baseFile?.encoding ? baseFile.encoding : encoding)
+    //     } else {
+    //         fileText = file?.text
+    //     }
+    //
+    //     for(processor in processors) {
+    //         synchronized(SassAssetFile) {
+    //             def processInstance = processor.newInstance(precompiler)
+    //             fileText = processInstance.process(fileText, this)
+    //         }
+    //     }
+    //
+    //     return fileText
+    // }
 
     String directiveForLine(String line) {
         line.find(/\*=(.*)/) { fullMatch, directive -> return directive }
