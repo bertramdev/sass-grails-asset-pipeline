@@ -216,9 +216,11 @@ class SassProcessor extends AbstractProcessor {
         } catch(e) {
             throw(e)
         } finally {
-            def outputFile = new File(outputFileName)
-            if(outputFile.exists()) {
-                outputFile.delete()
+            if(!grailsApplication.config.grails.assets.plugin."sass-asset-pipeline".keepCompiledFiles) {
+                def outputFile = new File(outputFileName)
+                if(outputFile.exists()) {
+                    outputFile.delete()
+                }
             }
         }
 
