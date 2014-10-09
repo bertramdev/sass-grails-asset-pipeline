@@ -30,6 +30,8 @@ Including Sass files into your GSP files is easy but there are a few things wort
 </head>
 ```
 
+**Note**: This plugin utilizes an internal copy of jruby 1.7.11 . If you have an external JRUBY_HOME in your ENV it may cause conflicts with this application.
+
 External Configuration
 ----------------------
 By default the `sass-asset-pipeline` will follow behavior from compass and look for a config.rb within the same folder as your required SASS file. This is not required, however, and is entirely optional. As a helper , we automatically add a global ruby variable referencing the plugin paths for all installed plugins of your application. This can be accessed in your config.rb if needed like so...
