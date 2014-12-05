@@ -16,6 +16,7 @@
 package asset.pipeline.sass
 
 import asset.pipeline.AssetHelper
+import asset.pipeline.AssetFile
 import grails.util.Holders
 import org.mozilla.javascript.Context
 import org.mozilla.javascript.JavaScriptException
@@ -108,7 +109,7 @@ class SassProcessor extends AbstractProcessor {
         }
     }
 
-    def process(input, assetFile) {
+    String process(String input, AssetFile assetFile) {
         def grailsApplication = Holders.getGrailsApplication()
 
         if(!this.precompiler) {
