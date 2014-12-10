@@ -108,7 +108,7 @@ class SassProcessor extends AbstractProcessor {
         }
     }
 
-    def process(input, assetFile) {
+    String process(String input, AssetFile assetFile) {
         def grailsApplication = Holders.getGrailsApplication()
 
         if(!this.precompiler) {
