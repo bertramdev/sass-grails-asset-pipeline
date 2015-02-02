@@ -2,8 +2,8 @@ import asset.pipeline.AssetHelper
 import asset.pipeline.sass.SassAssetFile
 
 class SassAssetPipelineGrailsPlugin {
-    def version         = "1.9.2"
-    def grailsVersion   = "2.0 > *"
+    def version         = "2.0.4"
+    def grailsVersion   = "2.2 > *"
     def title           = "SASS/SCSS Asset-Pipeline Plugin"
     def author          = "David Estes"
     def authorEmail     = "destes@bcap.com"
@@ -15,7 +15,4 @@ class SassAssetPipelineGrailsPlugin {
     def scm             = [ url: "http://github.com/bertramdev/sass-grails-asset-pipeline" ]
     def developers      = [ [name: 'Brian Wheeler'], [name: 'Jeremy Leng'], [name: 'Jordon Saardchit'], [name: 'Jeremy Crosbie'], [name: 'Bob Whiton'], [name: 'Andy Warner'] ]
 
-    def doWithDynamicMethods = { ctx ->
-        AssetHelper.assetSpecs << SassAssetFile
-    }
 }
