@@ -8,6 +8,7 @@ grails.project.dependency.resolution = {
         grailsCentral()
         grailsPlugins()
         mavenCentral()
+        jcenter()
     }
     dependencies {
         compile 'com.bertramlabs.plugins:sass-asset-pipeline:2.0.4'
