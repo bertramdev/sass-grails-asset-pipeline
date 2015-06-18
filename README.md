@@ -32,11 +32,7 @@ Including Sass files into your GSP files is easy but there are a few things wort
 
 External Configuration
 ----------------------
-By default the `sass-asset-pipeline` will follow behavior from compass and look for a config.rb within the same folder as your required SASS file. This is not required, however, and is entirely optional. As a helper , we automatically add a global ruby variable referencing the plugin paths for all installed plugins of your application. This can be accessed in your config.rb if needed like so...
-
-```ruby
-$ui_path = PLUGIN_CONTEXT_PATHS["bertram-ui"]
-```
+By default the `sass-asset-pipeline` will follow behavior from compass and look for a config.rb within the same folder as your required SASS file. This is not required, however, and is entirely optional. 
 
 Moreover it's possible to access the environment variable in config.rb to define environment specific config
 
