@@ -3,7 +3,7 @@ import asset.pipeline.sass.SassAssetFile
 import asset.pipeline.AssetPipelineConfigHolder
 
 class SassAssetPipelineGrailsPlugin {
-    def version         = "2.3.0"
+    def version         = "2.3.1"
     def grailsVersion   = "2.2 > *"
     def title           = "SASS/SCSS Asset-Pipeline Plugin"
     def author          = "David Estes"
