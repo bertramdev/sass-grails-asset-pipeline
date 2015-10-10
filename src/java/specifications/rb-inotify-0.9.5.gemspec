@@ -6,6 +6,7 @@ Gem::Specification.new do |s|
   s.version = "0.9.5"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
+  s.require_paths = ["lib"]
   s.authors = ["Nathan Weizenbaum"]
   s.date = "2014-06-06"
   s.description = "A Ruby wrapper for Linux's inotify, using FFI"
@@ -13,9 +14,10 @@ Gem::Specification.new do |s|
   s.extra_rdoc_files = ["README.md"]
   s.files = ["README.md"]
   s.homepage = "http://github.com/nex3/rb-inotify"
-  s.require_paths = ["lib"]
-  s.rubygems_version = "2.1.9"
+  s.rubygems_version = "2.4.8"
   s.summary = "A Ruby wrapper for Linux's inotify, using FFI"
+
+  s.installed_by_version = "2.4.8" if s.respond_to? :installed_by_version
 
   if s.respond_to? :specification_version then
     s.specification_version = 4
