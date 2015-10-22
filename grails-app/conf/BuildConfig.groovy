@@ -12,11 +12,11 @@ grails.project.dependency.resolution = {
         jcenter()
     }
     dependencies {
-        compile 'com.bertramlabs.plugins:sass-asset-pipeline:2.6.1'
+        compile 'com.bertramlabs.plugins:sass-asset-pipeline:2.6.2'
     }
 
     plugins {
-        runtime ":asset-pipeline:2.6.1"
+        runtime ":asset-pipeline:2.6.2"
 
         build(":release:3.1.1",
               ":rest-client-builder:2.0.3") {
