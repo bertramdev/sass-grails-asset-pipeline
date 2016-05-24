@@ -1,10 +1,9 @@
 import asset.pipeline.AssetHelper
-import asset.pipeline.sass.SassAssetFile
 import asset.pipeline.AssetPipelineConfigHolder
 
 class SassAssetPipelineGrailsPlugin {
     def loadAfter = ['asset-pipeline']
-    def version         = "2.9.0"
+    def version         = "2.9.1"
     def grailsVersion   = "2.2 > *"
     def title           = "SASS/SCSS Asset-Pipeline Plugin"
     def author          = "David Estes"
