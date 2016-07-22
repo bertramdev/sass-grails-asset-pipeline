@@ -4,6 +4,7 @@ The Grails `sass-asset-pipeline` is a plugin that provides SASS/SCSS support for
 
 For more information on how to use asset-pipeline, visit [here](http://www.github.com/bertramdev/asset-pipeline).
 
+*Requires*: Java 8 due to jsass features.
 
 Usage
 -----
