@@ -1,6 +1,11 @@
-// includeTargets << new File(assetPipelinePluginDir, "scripts/_AssetCompile.groovy")
-
 eventAssetPrecompileStart = { assetConfig ->
-	// def lessAssetFile = classLoader.loadClass('asset.pipeline.less.LessAssetFile')
-	assetConfig.specs << 'asset.pipeline.sass.SassAssetFile'
+	def configHolder = classLoader.loadClass('asset.pipeline.AssetPipelineConfigHolder')
+	if(configHolder.config == null) {
+        configHolder.config = [:]
+    }
+
+    if(configHolder.config.sass == null) {
+        configHolder.config.sass = [:]
+    }
+    configHolder.config.sass.resolveGems = false
 }

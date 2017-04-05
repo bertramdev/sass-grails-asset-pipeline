@@ -1,9 +1,10 @@
 SASS/SCSS Compass Grails Asset Pipeline
 =======================================
-The Grails `sass-asset-pipeline` is a plugin that provides SASS/SCSS support for the asset-pipeline static asset management plugin via the Compass framework.
+The Grails `sass-asset-pipeline` is a plugin that provides SASS/SCSS support for the asset-pipeline static asset management via libsass. (Libsass was added on version 2.9.0. All previous versions used compass sass)
 
 For more information on how to use asset-pipeline, visit [here](http://www.github.com/bertramdev/asset-pipeline).
 
+*Requires*: Java 8 due to jsass features.
 
 Usage
 -----
@@ -30,27 +31,6 @@ Including Sass files into your GSP files is easy but there are a few things wort
 </head>
 ```
 
-**Note**: This plugin utilizes an internal copy of jruby 1.7.11 . If you have an external JRUBY_HOME in your ENV it may cause conflicts with this application.
-
-External Configuration
-----------------------
-By default the `sass-asset-pipeline` will follow behavior from compass and look for a config.rb within the same folder as your required SASS file. This is not required, however, and is entirely optional. As a helper , we automatically add a global ruby variable referencing the plugin paths for all installed plugins of your application. This can be accessed in your config.rb if needed like so...
-
-```ruby
-$ui_path = PLUGIN_CONTEXT_PATHS["bertram-ui"]
-```
-
-Moreover it's possible to access the environment variable in config.rb to define environment specific config
-
-```ruby
-if Compass.configuration.environment == :production
-  sass_options = {:debug_info => false}
-  line_comments = false
-else
-  sass_options = {:debug_info => true}
-  line_comments = true
-end
-```
 
 Production
 ----------
